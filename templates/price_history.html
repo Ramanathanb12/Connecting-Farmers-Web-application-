@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Price History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        table {
+            width: 90%;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        a {
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+            text-align: center;
+            color: #4CAF50;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Crop Details / Price History</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Farmer Name</th>
+                <th>Crops Grown</th>
+                <th>rate_per_kg</th>
+                <th>Available Kgs</th>
+                <th>Location</th>
+                <th>Phone</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for farmer in farmers %}
+            <tr>
+                <td>{{ farmer[0] }}</td>
+                <td>{{ farmer[1] }}</td>
+                <td>{{ farmer[2] }}</td>
+                <td>{{ farmer[3] }}</td>
+                <td>{{ farmer[4] }}</td>
+                <td>{{ farmer[5] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="/farmer_dashboard">← Back to Dashboard</a>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Buy Product</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .purchase-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            width: 500px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        .purchase-container h2 {
+            margin-bottom: 20px;
+            color: #16a085;
+            font-size: 28px;
+        }
+
+        .purchase-info {
+            margin-bottom: 30px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .product-info {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .availability-info {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .available-quantity {
+            font-weight: bold;
+            color: #16a085;
+        }
+
+        .low-stock {
+            color: #e74c3c;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .form-field {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .form-field.error {
+            border-color: #e74c3c;
+        }
+
+        .form-field:focus {
+            border-color: #16a085;
+            outline: none;
+        }
+
+        .total-price {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #e74c3c;
+        }
+
+        .payment-method {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 48%;
+            margin: 5px;
+        }
+
+        .submit-btn {
+            background-color: #16a085;
+            color: white;
+        }
+
+        .submit-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            color: black;
+        }
+
+        .success-message {
+            margin-top: 20px;
+            color: #27ae60;
+            font-weight: bold;
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="purchase-container">
+    <span class="back-btn" onclick="window.history.back()">&times;</span>
+    <h2>Purchase Order</h2>
+    <div class="purchase-info">
+        <div class="product-info" id="productInfo">Product: {{ product_name }} (₹{{ price_per_kg }}/kg) from {{ farmer_name }}</div>
+        <div class="availability-info">
+    Available Quantity: <span id="availableQuantity" class="available-quantity">{{ "%.2f"|format(available_kgs) }}</span> kg
+    <div id="stockWarning" class="low-stock">
+        ⚠️ Quantity exceeds available stock
+    </div>
+</div>
+    </div>
+
+    <input type="text" id="marketName" class="form-field" placeholder="Enter Market Name" required />
+    <input type="number" id="kgQuantity" class="form-field" placeholder="Enter Quantity (kg)" 
+           required min="1" max="{{ available_kgs }}" step="0.1" />
+    
+    <div class="total-price">
+        Total Price: ₹<span id="price">0.00</span>
+    </div>
+
+    <select id="paymentMethod" class="payment-method" required>
+        <option value="">Select Payment Method</option>
+        <option value="cash">Cash</option>
+        <option value="online">Online Payment</option>
+    </select>
+
+    <div class="button-container">
+        <button class="submit-btn" id="submitBtn" onclick="submitOrder()">Submit Order</button>
+        <button class="cancel-btn" onclick="window.history.back()">Cancel</button>
+    </div>
+
+    <div class="success-message" id="successMessage">
+        Order placed successfully! Redirecting...
+    </div>
+</div>
+
+<script>
+    // Get available quantity from template variable
+    const availableKgs = parseFloat("{{ available_kgs }}");
+    const pricePerKg = parseFloat("{{ price_per_kg }}");
+    const productId = "{{ product_id }}";
+    const productName = "{{ product_name }}";
+    const farmerName = "{{ farmer_name }}";
+
+    // DOM elements
+    const kgInput = document.getElementById('kgQuantity');
+    const priceDisplay = document.getElementById('price');
+    const stockWarning = document.getElementById('stockWarning');
+    const submitBtn = document.getElementById('submitBtn');
+    const successMessage = document.getElementById('successMessage');
+
+    // Calculate price and validate stock in real-time
+    kgInput.addEventListener('input', function() {
+        const kg = parseFloat(this.value) || 0;
+        const total = kg * pricePerKg;
+        priceDisplay.textContent = total.toFixed(2);
+        
+        // Validate against available stock
+        if (kg > availableKgs) {
+            stockWarning.style.display = 'block';
+            kgInput.classList.add('error');
+            submitBtn.disabled = true;
+        } else {
+            stockWarning.style.display = 'none';
+            kgInput.classList.remove('error');
+            submitBtn.disabled = false;
+        }
+    });
+
+    // Submit order function
+    function submitOrder() {
+        const marketName = document.getElementById('marketName').value;
+        const kg = parseFloat(kgInput.value);
+        const paymentMethod = document.getElementById('paymentMethod').value;
+        const totalPrice = kg * pricePerKg;
+
+        // Validate inputs
+        if (!marketName || !kg || kg <= 0 || !paymentMethod) {
+            alert("Please fill in all fields correctly.");
+            return;
+        }
+
+        if (kg > availableKgs) {
+            alert("Order quantity exceeds available stock!");
+            return;
+        }
+
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Processing <span class="loading"></span>';
+
+        // Send data to backend
+        fetch('/place_order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                product_id: productId,
+                market_name: marketName,
+                quantity_kg: kg,
+                total_price: totalPrice,
+                payment_method: paymentMethod,
+                farmer_name: farmerName
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                // Show success message
+                successMessage.style.display = 'block';
+                
+                // Redirect after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/market_dashboard';
+                }, 2000);
+            } else {
+                throw new Error(data.message || 'Order failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting order: ' + error.message);
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Order';
+        });
+    }
+</script>
+</body>
+</html>

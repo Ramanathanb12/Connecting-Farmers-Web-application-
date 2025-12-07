@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Background Video Styling */
+        #background-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        /* Form styling */
+        label {
+            font-size: 18px;
+            margin: 10px 0;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="submit"] {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        /* Button styling */
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .logout-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .message-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .add-product-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .orders-btn {
+            background-color: #FF9800;
+            color: white;
+        }
+
+        /* Message modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        /* Message list styling */
+        .message-list {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .message-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            color: #2196F3;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .message-content {
+            margin-top: 5px;
+        }
+
+        /* Notification badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .message-btn-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Styling for the form container */
+        .form-container {
+            display: none;
+            margin-top: 30px;
+            background-color: #f9f9f9;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        /* Center the form elements */
+        #productForm {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Make inputs take up 80% of the container width for better visual alignment */
+        #productForm input[type="text"],
+        #productForm input[type="number"],
+        #productForm input[type="submit"] {
+            width: 80%;
+        }
+
+        /* Optional: Style the labels slightly */
+        #productForm label {
+            width: 80%;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="background-video">
+        <source src="static/Farmer.mp4" type="video/mp4">
+    </video>
+
+    <div class="container">
+        <h1>Farmer Dashboard</h1>
+        <p>Welcome, {{ session['user_name'] }}!</p>
+
+        <!-- Notification Display -->
+        {% if messages %}
+            <div class="alert-info">
+                <p>You have {{ messages|length }} new message(s)</p>
+            </div>
+        {% endif %}
+
+        <!-- Button to show the form -->
+        <div class="button-container">
+            <button id="addProductButton" class="add-product-btn" onclick="toggleForm()">Add Product</button>
+            
+            <div class="message-btn-container">
+                <button class="message-btn" onclick="openMessageModal()">Messages
+                    {% if messages %}<span class="notification-badge">{{ messages|length }}</span>{% endif %}
+                </button>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+            <button class="orders-btn" onclick="viewOrders()">Orders</button>
+            <!-- ✅ New "Price History" Button -->
+            <button class="orders-btn" onclick="viewPriceHistory()">Price History</button>
+        </div>
+
+        <!-- Form to register the product -->
+        <div class="form-container" id="formContainer">
+            <form id="productForm" action="/farmer_dashboard" method="POST">
+                <label for="farmer_name">Farmer Name / விவசாயி பெயர்</label>
+                <input type="text" id="farmer_name" name="farmer_name" required>
+
+                <label for="crops_grown">Crops Grown / வளர்க்கப்பட்ட பயிர்கள்</label>
+                <input type="text" id="crops_grown" name="crops_grown" required>
+
+                <!-- Removed Rate Per KG input field -->
+
+                <label for="available_kgs">Available Kgs / மொத்த அளவு </label>
+                <input type="number" id="available_kgs" name="available_kgs" required>
+
+                <label for="location">Location / இடம்</label>
+                <input type="text" id="location" name="location" required>
+
+                <label for="phone">Phone / தொலைபேசி</label>
+                <input type="number" id="phone" name="phone" required>
+
+                <input type="submit" value="Submit / சமர்ப்பி">
+            </form>
+        </div>
+
+        <!-- Message Modal -->
+        <div id="messageModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeMessageModal()">&times;</span>
+                <h2>Messages</h2>
+                <div id="messageList" class="message-list">
+                    {% for message in messages %}
+                        <div class="message-item">
+                            <div class="message-sender">{{ message[6] }}</div>
+                            <div class="message-time">{{ message['timestamp'].strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                            <div class="message-content">{{ message[3] }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <hr>
+                <h3>Send Message</h3>
+                <select id="recipientSelect">
+                    <option value="">Select a marketer</option>
+                </select>
+                <textarea id="messageText" rows="4" style="width: 100%; margin-top: 10px;"></textarea>
+                <button onclick="sendMessage()" style="margin-top: 10px;">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to toggle the form visibility
+        function toggleForm() {
+            var formContainer = document.getElementById('formContainer');
+            var button = document.getElementById('addProductButton');
+
+            if (formContainer.style.display === "none" || !formContainer.style.display) {
+                formContainer.style.display = "block";
+                button.innerHTML = "Hide Form";
+            } else {
+                formContainer.style.display = "none";
+                button.innerHTML = "Add Product";
+            }
+        }
+
+        // Message modal functions
+        function openMessageModal() {
+            var modal = document.getElementById('messageModal');
+            modal.style.display = "block";
+            loadRecipients();
+            checkForNewMessages();
+        }
+
+        function closeMessageModal() {
+            var modal = document.getElementById('messageModal');
+            modal.style.display = "none";
+        }
+
+        function loadRecipients() {
+            $.get('/get_users', function(data) {
+                if (data.status === 'success') {
+                    var select = $('#recipientSelect');
+                    select.empty();
+                    select.append('<option value="">Select a marketer</option>');
+                    data.users.forEach(function(user) {
+                        select.append(`<option value="${user.id}">${user.name}</option>`);
+                    });
+                }
+            });
+        }
+
+        function sendMessage() {
+            var recipientId = $('#recipientSelect').val();
+            var message = $('#messageText').val();
+
+            if (!recipientId || !message) {
+                alert('Please select a recipient and enter a message');
+                return;
+            }
+
+            console.log("Attempting to send message to:", recipientId, "Content:", message);
+
+            $.ajax({
+                url: '/send_message',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    recipient_id: recipientId,
+                    message: message
+                }),
+                success: function(data) {
+                    console.log("Server response:", data);
+                    if (data.status === 'success') {
+                        alert('Message sent successfully');
+                        $('#messageText').val('');
+                        
+                        // Add the sent message to the message list immediately
+                        var messageList = $('#messageList');
+                        messageList.prepend(`
+                            <div class="message-item">
+                                <div class="message-sender">You</div>
+                                <div class="message-time">${data.timestamp}</div>
+                                <div class="message-content">${message}</div>
+                            </div>
+                        `);
+                    } else {
+                        alert('Error sending message: ' + data.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX error:", error);
+                    alert('Failed to send message. Please check console for details.');
+                }
+            });
+        }
+
+        function checkForNewMessages() {
+            $.get('/get_messages', function(data) {
+                if (data.status === 'success' && data.messages.length > 0) {
+                    var messageList = $('#messageList');
+                    messageList.empty();
+                    
+                    data.messages.forEach(function(msg) {
+                        messageList.append(`
+                            <div class="message-item">
+                                <div class="message-sender">${msg.sender_name}</div>
+                                <div class="message-time">${msg.timestamp}</div>
+                                <div class="message-content">${msg.message}</div>
+                            </div>
+                        `);
+                    });
+                    
+                    // Update notification badge
+                    $('.notification-badge').text(data.messages.length);
+                }
+            });
+        }
+
+        // Logout function
+        function logout() {
+            $.post('/logout', function() {
+                window.location.href = '/login';
+            });
+        }
+
+        // View orders function
+        function viewOrders() {
+            window.location.href = '/order';
+        }
+
+        // ✅ New function for Price History redirection
+        function viewPriceHistory() {
+            window.location.href = '/price_history';
+        }
+
+        // Check for new messages periodically
+        setInterval(function() {
+            if ($('#messageModal').css('display') === 'block') {
+                checkForNewMessages();
+            }
+        }, 10000); // Check every 10 seconds
+    </script>
+</body>
+</html>

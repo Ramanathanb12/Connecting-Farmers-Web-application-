@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Background Video Styling */
+        #background-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        
+        /* Global styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            text-align: center;
+            padding: 50px;
+        }
+
+        /* Heading style */
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        /* Button styles */
+        button {
+            background-color: #0062cc; /* Blue  background */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        /* Hover effect - scale the button */
+        button:hover {
+            background-color: #45a049; /* Darker green on hover */
+            transform: scale(1.1); /* Enlarge the button */
+        }
+
+        /* Add an animation when the page loads for the buttons */
+        @keyframes buttonAnim {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Apply the animation to the buttons */
+        button {
+            animation: buttonAnim 0.8s ease-out;
+        }
+
+        /* Chat Button Style */
+        .chat-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #28a745; /* Green */
+            color: white;
+            border-radius: 50%;
+            padding: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .chat-button:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="background-video">
+        <source src="static/Home.mp4" type="video/mp4">
+    </video>
+
+    <h1>Connecting Farmers with local Markets!</h1>
+
+    <button onclick="window.location.href='login'">Start here</button>
+    <button onclick="window.location.href='gov_schems'">Schemes</button>
+    
+    <!-- Chat button -->
+    <button class="chat-button" onclick="window.location.href='chat'">💬</button>
+
+</body>
+</html>
